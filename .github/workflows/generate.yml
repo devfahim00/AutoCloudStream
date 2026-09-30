@@ -1,0 +1,173 @@
+name: Generate Provider
+
+# Run manually from the Actions tab: it asks for the website URL and does
+# everything —
+#   1. profiles the site          (site_profiler.py  -> profiles/<Site>.json)
+#   2. generates the .kt module   (generate_provider.py -> plugins-repo/<Site>/)
+#   3. commits provider + profile to this repo
+#   4. builds the .cs3 plugin     (gradle, same setup as the csdev repo)
+#   5. uploads the .cs3 as an artifact + commits it to builds/
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "Website listing page URL (e.g. https://example.com/movies/)"
+        required: true
+        type: string
+      name:
+        description: "Provider display name (optional - auto-derived from the domain)"
+        required: false
+        default: ""
+        type: string
+      discover:
+        description: "Discover extra home-page sections from nav/category links"
+        required: false
+        default: true
+        type: boolean
+      telegram_url:
+        description: "Telegram promo channel URL (leave EMPTY to disable the promo block)"
+        required: false
+        default: "https://t.me/projectredfox"
+        type: string
+      build_cs3:
+        description: "Also build the .cs3 plugin files with Gradle"
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+
+concurrency:
+  group: generate-provider
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    env:
+      SITE_URL: ${{ inputs.url }}
+      NAME_INPUT: ${{ inputs.name }}
+      TELEGRAM_URL: ${{ inputs.telegram_url }}
+      DISCOVER: ${{ inputs.discover }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt cloudscraper
+
+      # ---------------- stage 1: profile the site ----------------
+      - name: Profile the site (stage 1)
+        run: |
+          set -o pipefail
+          ARGS=""
+          if [ "$DISCOVER" = "true" ]; then ARGS="--discover"; fi
+          python site_profiler.py --url "$SITE_URL" $ARGS --output profiles/pending.json 2>&1 | tee profile-report.txt
+
+      - name: Job summary - profile report
+        run: |
+          {
+            echo "# AutoCloudStream - Site Profile"
+            echo '```'
+            cat profile-report.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # ---------------- stage 3: generate the provider ----------------
+      - name: Generate provider module (stage 3)
+        run: |
+          NAME="$NAME_INPUT"
+          if [ -z "$NAME" ]; then
+            NAME=$(python3 -c "import json; print(json.load(open('profiles/pending.json'))['site']['name'])")
+          fi
+          echo "SITE_NAME=$NAME" >> "$GITHUB_ENV"
+          python generate_provider.py --profile profiles/pending.json \
+            --out plugins-repo --name "$NAME" --telegram-url "$TELEGRAM_URL"
+          mkdir -p profiles
+          mv profiles/pending.json "profiles/$NAME.json"
+
+      - name: Commit generated provider
+        run: |
+          git config user.name "AutoCloudStream Bot"
+          git config user.email "actions@github.com"
+          git add profiles/ plugins-repo/
+          git commit -m "Generate $SITE_NAME provider from $SITE_URL [skip ci]" || echo "nothing new to commit"
+          git push || echo "push skipped (no changes)"
+
+      # ---------------- optional: build the .cs3 plugin ----------------
+      - name: Set up JDK 17
+        if: ${{ inputs.build_cs3 }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: "adopt"
+          java-version: 17
+
+      - name: Set up Android SDK
+        if: ${{ inputs.build_cs3 }}
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Gradle (cached)
+        if: ${{ inputs.build_cs3 }}
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Build .cs3 plugins
+        if: ${{ inputs.build_cs3 }}
+        run: |
+          cd plugins-repo
+          chmod +x gradlew
+          ./gradlew make makePluginsJson --no-daemon
+
+      - name: Collect builds
+        if: ${{ inputs.build_cs3 }}
+        run: |
+          mkdir -p builds
+          rm -f builds/*.cs3 builds/plugins.json
+          cp plugins-repo/*/build/*.cs3 builds/ 2>/dev/null || true
+          cp plugins-repo/build/plugins.json builds/ 2>/dev/null || true
+          # normalize raw download URLs to the main branch (safety net)
+          if [ -f builds/plugins.json ]; then
+            sed -i -e 's|/refs/heads/master/|/refs/heads/main/|g' \
+                   -e 's|/refs/heads/builds/|/refs/heads/main/|g' builds/plugins.json
+          fi
+          ls -la builds/
+
+      - name: Commit builds
+        if: ${{ inputs.build_cs3 }}
+        run: |
+          git config user.name "AutoCloudStream Bot"
+          git config user.email "actions@github.com"
+          git add builds/
+          git commit -m "Build .cs3 for $SITE_NAME [skip ci]" || echo "nothing new to commit"
+          git pull --rebase --autostash || true
+          git push || echo "push skipped (no changes)"
+
+      - name: Upload .cs3 artifacts
+        if: ${{ inputs.build_cs3 }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: cs3-plugins
+          path: builds/*.cs3
+          if-no-files-found: warn
+
+      - name: Job summary - results
+        run: |
+          {
+            echo ""
+            echo "## Generated provider: $SITE_NAME"
+            echo '```'
+            find plugins-repo -path "*/src/main/kotlin/*" -name "*.kt" | sort
+            echo '```'
+            echo ""
+            echo "## Next steps"
+            echo "1. Review the selectors in \`"${SITE_NAME}"Provider.kt\` (companion object at the bottom)"
+            echo "2. Check the **MANUAL REVIEW** block in \`loadLinks()\` - per-site video extraction"
+            echo "3. Install the \`.cs3\` from the run artifacts (or the \`builds/\` folder) in CloudStream"
+          } >> "$GITHUB_STEP_SUMMARY"

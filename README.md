@@ -69,6 +69,43 @@ python site_profiler.py --url https://example.com/movies/ -o profile.json
 python generate_provider.py --profile profile.json --out output/
 ```
 
+## GitHub Actions — one-click generation (no PC needed)
+
+The repo ships with a **Generate Provider** workflow. Open
+**Actions → Generate Provider → Run workflow** and it *asks for the
+website URL*, then does everything automatically:
+
+1. **Profiles** the site (`profiles/<Site>.json` — committed)
+2. **Generates** the full provider module (`plugins-repo/<Site>/` — committed)
+3. **Builds** the `.cs3` plugin with Gradle (same setup as the csdev repo)
+4. **Uploads** the `.cs3` as a run artifact and commits it to `builds/`
+   along with a ready-to-use `plugins.json`
+
+Workflow inputs:
+
+| input | description |
+|-------|-------------|
+| `url` | website listing page URL (required) — the workflow prompt |
+| `name` | provider display name (optional, auto from domain) |
+| `discover` | auto-discover extra home sections (default true) |
+| `telegram_url` | promo channel (empty = disable the promo block) |
+| `build_cs3` | also compile the `.cs3` plugin (default true) |
+
+The profile report (detected selectors, pagination, stream hosts, video
+findings) is printed in the run's **Summary** page, so you can review what
+was detected without leaving GitHub. If the selectors look wrong, edit
+them in `plugins-repo/<Site>/.../Provider.kt` (companion object at the
+bottom) and re-run **Build All Plugins**.
+
+Then in CloudStream: *Settings → Extensions → Add repository* and paste
+
+```
+https://raw.githubusercontent.com/devfahim00/AutoCloudStream/main/builds/plugins.json
+```
+
+There is also a **Build All Plugins** workflow (no inputs) that rebuilds
+every `.cs3` in `plugins-repo/` after you hand-edit a provider.
+
 ## CLI reference
 
 ### `python main.py auto` (or `site_profiler.py`) — profiling

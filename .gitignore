@@ -4,10 +4,9 @@ __pycache__/
 .venv/
 venv/
 
-# profiler / generator output
+# profiler / generator local output (profiles/ and plugins-repo/ ARE committed)
 profile.json
 output/
-profiles/
 
 .DS_Store
 .idea/
