@@ -40,6 +40,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 from collections import Counter
@@ -1208,6 +1209,8 @@ def main(argv=None):
         print(f"[x] {exc}", file=sys.stderr)
         return 2
 
+    out_dir = os.path.dirname(os.path.abspath(args.output))
+    os.makedirs(out_dir, exist_ok=True)
     with open(args.output, "w", encoding="utf-8") as f:
         json.dump(profile, f, indent=2, ensure_ascii=False)
     if not args.quiet:

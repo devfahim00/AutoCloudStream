@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 
 import generate_provider as gen
@@ -69,6 +70,14 @@ def _add_generate_args(ap):
                     help="emit only the Provider.kt file (no module layout)")
 
 
+def _write_profile(profile: dict, path: str):
+    """Write the profile JSON, creating parent directories as needed."""
+    out_dir = os.path.dirname(os.path.abspath(path))
+    os.makedirs(out_dir, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(profile, f, indent=2, ensure_ascii=False)
+
+
 def cmd_profile(args):
     try:
         profile = prof.profile_site(
@@ -85,8 +94,7 @@ def cmd_profile(args):
     except prof.ProfilerError as exc:
         print(f"[x] {exc}", file=sys.stderr)
         return 2
-    with open(args.output, "w", encoding="utf-8") as f:
-        json.dump(profile, f, indent=2, ensure_ascii=False)
+    _write_profile(profile, args.output)
     print(prof.build_report(profile))
     print(f"[>] profile written to {args.output}")
     print(f"[i] next: python main.py generate --profile {args.output}")
@@ -144,8 +152,7 @@ def cmd_auto(args):
     except prof.ProfilerError as exc:
         print(f"[x] {exc}", file=sys.stderr)
         return 2
-    with open(args.output, "w", encoding="utf-8") as f:
-        json.dump(profile, f, indent=2, ensure_ascii=False)
+    _write_profile(profile, args.output)
     print(prof.build_report(profile))
     print(f"[>] profile written to {args.output}")
 
