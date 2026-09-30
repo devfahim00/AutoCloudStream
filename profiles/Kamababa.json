@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-09-30T19:03:27+00:00",
+  "site": {
+    "main_url": "https://kamababa1.com",
+    "name": "Kamababa",
+    "language": "en",
+    "icon_url": null,
+    "cloudflare_protected": false,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+  },
+  "listing": {
+    "sections": [
+      {
+        "name": "Home",
+        "url": "https://kamababa1.com"
+      },
+      {
+        "name": "Know Our Author",
+        "url": "https://kamababa1.com/author-profile"
+      },
+      {
+        "name": "18 Usc 2257 Statement",
+        "url": "https://kamababa1.com/18-usc-2257-statement"
+      },
+      {
+        "name": "Best Videos",
+        "url": "https://kamababa1.com/?filter=popular"
+      },
+      {
+        "name": "Newest",
+        "url": "https://kamababa1.com/?filter=latest"
+      },
+      {
+        "name": "Most Viewed",
+        "url": "https://kamababa1.com/?filter=most-viewed"
+      },
+      {
+        "name": "Longest",
+        "url": "https://kamababa1.com/?filter=longest"
+      }
+    ],
+    "card_selector": ".aside-block a",
+    "card_count": 20,
+    "link_count": 15,
+    "unique_link_count": 0,
+    "link": {
+      "selector": null,
+      "self": true,
+      "attr": "href"
+    },
+    "title": {
+      "selector": null,
+      "method": "link_text"
+    },
+    "poster": {
+      "selector": null,
+      "attr": null,
+      "count": 0
+    },
+    "pagination": {
+      "style": "page_path",
+      "template": "https://www.mykamababa.com/page/{page}/",
+      "next_selector": "a[rel=next], a.next, .next.page-numbers"
+    },
+    "detail_url_prefixes": [],
+    "card_stats": {
+      "count": 20,
+      "link_ratio": 1.0,
+      "img_ratio": 0.0,
+      "unique_href_ratio": 1.0,
+      "nav_ratio": 0.0
+    },
+    "card_score": 48.0
+  },
+  "detail": {
+    "samples": [],
+    "title_selector": null,
+    "desc_selector": null,
+    "og_title": false,
+    "og_image": false,
+    "og_description": false,
+    "meta_description": false,
+    "stream_hosts": [],
+    "detail_links_selector": null,
+    "episode_links_detected": false,
+    "iframes": []
+  },
+  "search": {
+    "found": true,
+    "url_template": "https://www.mykamababa.com/?s={query}",
+    "method": "form",
+    "verified": true
+  },
+  "video": {
+    "scanned": false,
+    "sample_url": null,
+    "mode": "unknown",
+    "found_m3u8": [],
+    "found_mp4": [],
+    "found_iframes": [],
+    "packed_script": false,
+    "player_hints": [],
+    "notes": "not scanned"
+  },
+  "confidence": {
+    "card_selector": "medium",
+    "link": "high",
+    "unique_links": "high",
+    "poster": "low",
+    "search": "high",
+    "detail": "low",
+    "pagination": "high"
+  }
+}
