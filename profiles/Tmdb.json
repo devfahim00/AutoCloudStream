@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-09-30T17:51:30+00:00",
+  "site": {
+    "main_url": "https://www.themoviedb.org",
+    "name": "Themoviedb",
+    "language": "en",
+    "icon_url": null,
+    "cloudflare_protected": false,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+  },
+  "listing": {
+    "sections": [
+      {
+        "name": "Home",
+        "url": "https://www.themoviedb.org/movie"
+      },
+      {
+        "name": "Top Rated",
+        "url": "https://www.themoviedb.org/movie/top-rated"
+      },
+      {
+        "name": "Tv Shows",
+        "url": "https://www.themoviedb.org/tv"
+      },
+      {
+        "name": "Airing Today",
+        "url": "https://www.themoviedb.org/tv/airing-today"
+      },
+      {
+        "name": "On Tv",
+        "url": "https://www.themoviedb.org/tv/on-the-air"
+      },
+      {
+        "name": "Top Rated",
+        "url": "https://www.themoviedb.org/tv/top-rated"
+      }
+    ],
+    "card_selector": "div.bg-white.border.border-gray-200",
+    "card_count": 20,
+    "link_count": 15,
+    "unique_link_count": 15,
+    "link": {
+      "selector": "div.flex div.relative a.flex[href]",
+      "self": false,
+      "attr": "href"
+    },
+    "title": {
+      "selector": "div.flex div.w-full div.flex a.font-normal h2.font-semibold",
+      "method": "element_text"
+    },
+    "poster": {
+      "selector": "div.flex div.relative a.flex div.image img.poster",
+      "attr": "src",
+      "count": 15
+    },
+    "pagination": {
+      "style": "query",
+      "template": "https://www.themoviedb.org/movie?page={page}",
+      "param": "page",
+      "next_selector": "a[rel=next], a.next"
+    },
+    "detail_url_prefixes": [
+      "/movie/"
+    ],
+    "card_stats": {
+      "count": 20,
+      "link_ratio": 1.0,
+      "img_ratio": 1.0,
+      "unique_href_ratio": 1.0,
+      "nav_ratio": 0.0
+    },
+    "card_score": 74.0
+  },
+  "detail": {
+    "samples": [
+      "https://www.themoviedb.org/movie/969681-spider-man-brand-new-day",
+      "https://www.themoviedb.org/movie/1423191-resident-evil"
+    ],
+    "title_selector": "h2.25",
+    "desc_selector": null,
+    "og_title": true,
+    "og_image": true,
+    "og_description": true,
+    "meta_description": true,
+    "stream_hosts": [
+      "developer.themoviedb.org",
+      "status.themoviedb.org",
+      "spidermanbrandnewday.movie",
+      "residentevil.movie"
+    ],
+    "detail_links_selector": null,
+    "episode_links_detected": false,
+    "iframes": []
+  },
+  "search": {
+    "found": true,
+    "url_template": "https://www.themoviedb.org/search?query={query}",
+    "method": "form",
+    "verified": true
+  },
+  "video": {
+    "scanned": true,
+    "sample_url": "https://developer.themoviedb.org/docs",
+    "mode": "unknown",
+    "found_m3u8": [],
+    "found_mp4": [],
+    "found_iframes": [],
+    "packed_script": false,
+    "player_hints": [],
+    "notes": "No direct stream in raw HTML — player is likely JS-rendered. Try WebViewResolver (already in template) or write manual extraction."
+  },
+  "confidence": {
+    "card_selector": "high",
+    "link": "high",
+    "unique_links": "high",
+    "poster": "high",
+    "search": "high",
+    "detail": "high",
+    "pagination": "high"
+  }
+}
