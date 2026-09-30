@@ -184,5 +184,7 @@ jobs:
             echo "## Next steps"
             echo "1. Review the selectors in \`"${SITE_NAME}"Provider.kt\` (companion object at the bottom)"
             echo "2. Check the **MANUAL REVIEW** block in \`loadLinks()\` - per-site video extraction"
-            echo "3. Install the \`.cs3\` from the run artifacts (or the \`builds/\` folder) in CloudStream"
+            echo "3. Install from CloudStream: Settings → Extensions → Add repository →"
+            echo "   https://raw.githubusercontent.com/devfahim00/AutoCloudStream/main/repo.json"
+            echo "   (repo.json manifest - do NOT add builds/plugins.json directly)"
           } >> "$GITHUB_STEP_SUMMARY"

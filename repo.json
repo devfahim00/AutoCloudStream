@@ -1,0 +1,8 @@
+{
+    "name": "AutoCloudStream",
+    "description": "Auto-generated CloudStream providers",
+    "manifestVersion": 1,
+    "pluginLists": [
+        "https://raw.githubusercontent.com/devfahim00/AutoCloudStream/main/builds/plugins.json"
+    ]
+}

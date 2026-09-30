@@ -79,7 +79,10 @@ website URL*, then does everything automatically:
 2. **Generates** the full provider module (`plugins-repo/<Site>/` — committed)
 3. **Builds** the `.cs3` plugin with Gradle (same setup as the csdev repo)
 4. **Uploads** the `.cs3` as a run artifact and commits it to `builds/`
-   along with a ready-to-use `plugins.json`
+   along with a ready-to-use `plugins.json` (the plugin list)
+5. Keeps the repository manifest (`repo.json` in the repo root) in sync —
+   **that manifest URL is what you add inside the CloudStream app**, not
+   `builds/plugins.json` directly
 
 Workflow inputs:
 
@@ -98,10 +101,20 @@ them in `plugins-repo/<Site>/.../Provider.kt` (companion object at the
 bottom) and re-run **Build All Plugins**.
 
 Then in CloudStream: *Settings → Extensions → Add repository* and paste
+the **repository manifest** URL:
 
 ```
-https://raw.githubusercontent.com/devfahim00/AutoCloudStream/main/builds/plugins.json
+https://raw.githubusercontent.com/devfahim00/AutoCloudStream/main/repo.json
 ```
+
+> ⚠️ Do **not** add `builds/plugins.json` directly — that file is the raw
+> *plugin list* (a JSON array). The app expects a manifest with
+> `name` / `manifestVersion` / `pluginLists` fields (same format as the
+> official `recloudstream/extensions` repo) and shows
+> *"Repository not found, check the URL and try VPN"* if you give it the
+> plugin list URL. If adding the manifest still fails, your ISP is probably
+> blocking `raw.githubusercontent.com` — enable CloudStream's built-in
+> jsDelivr proxy (*Settings → General → GitHub Proxy*) or use a VPN.
 
 There is also a **Build All Plugins** workflow (no inputs) that rebuilds
 every `.cs3` in `plugins-repo/` after you hand-edit a provider.
