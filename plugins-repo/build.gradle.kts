@@ -15,7 +15,9 @@ buildscript {
 
     dependencies {
         classpath("com.android.tools.build:gradle:8.6.1")
-        classpath("com.github.recloudstream:gradle:-SNAPSHOT")
+        // pinned commit hash — the -SNAPSHOT version stopped resolving on
+        // jitpack (same pin used by currently-working plugin repos)
+        classpath("com.github.recloudstream:gradle:81b1d424d2")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.4.0")
     }
 }
