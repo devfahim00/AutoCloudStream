@@ -29,7 +29,19 @@ jobs:
           java-version: 17
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3.2.2
+        run: |
+          # the runner image ships the SDK already; we only accept licenses
+          # and make sure the needed platform/build-tools are present.
+          if [ -n "$ANDROID_HOME" ]; then
+            SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+            if [ ! -x "$SDKMANAGER" ]; then
+              SDKMANAGER=$(ls "$ANDROID_HOME"/cmdline-tools/*/bin/sdkmanager 2>/dev/null | sort -V | tail -1)
+            fi
+            if [ -n "$SDKMANAGER" ]; then
+              yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
+              "$SDKMANAGER" --install "platforms;android-35" "build-tools;34.0.0" "build-tools;35.0.0" > /dev/null 2>&1 || true
+            fi
+          fi
 
       - name: Set up Gradle (cached)
         uses: gradle/actions/setup-gradle@v3

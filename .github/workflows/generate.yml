@@ -112,7 +112,21 @@ jobs:
 
       - name: Set up Android SDK
         if: ${{ inputs.build_cs3 }}
-        uses: android-actions/setup-android@v3.2.2
+        run: |
+          # the runner image ships the SDK already; we only accept licenses
+          # and make sure the needed platform/build-tools are present.
+          # (android-actions/setup-android is broken since Google removed
+          #  the obsolete 'tools' package from the SDK repository)
+          if [ -n "$ANDROID_HOME" ]; then
+            SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+            if [ ! -x "$SDKMANAGER" ]; then
+              SDKMANAGER=$(ls "$ANDROID_HOME"/cmdline-tools/*/bin/sdkmanager 2>/dev/null | sort -V | tail -1)
+            fi
+            if [ -n "$SDKMANAGER" ]; then
+              yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
+              "$SDKMANAGER" --install "platforms;android-35" "build-tools;34.0.0" "build-tools;35.0.0" > /dev/null 2>&1 || true
+            fi
+          fi
 
       - name: Set up Gradle (cached)
         if: ${{ inputs.build_cs3 }}
