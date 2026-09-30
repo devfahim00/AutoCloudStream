@@ -248,6 +248,25 @@ class TestGenerator(unittest.TestCase):
         kt = files["TestsiteProvider.kt"]
         self.assertIn("TvType.TvSeries", kt.split("supportedTypes")[1].split(")")[0])
 
+    def test_query_pagination_kotlin_syntax(self):
+        """Regression: query-style pageUrl must be valid Kotlin.
+
+        The bug: '"page="$page' (template outside the string literal) —
+        caught by the first real CI build, must never come back.
+        """
+        import copy
+        profile = copy.deepcopy(self.PROFILE)
+        profile["listing"]["pagination"] = {
+            "style": "query",
+            "template": "https://testsite.local/movies/?page={page}",
+            "param": "page",
+        }
+        files = gen.generate(profile, self._opts())
+        kt = files["TestsiteProvider.kt"]
+        self.assertIn('+ "page=$page"', kt)          # valid string template
+        self.assertNotIn('"page="$page', kt)          # the old broken form
+        self.assertNotIn('="$', kt)                   # no $ glued after a closing quote
+
     def test_plugin_and_gradle(self):
         files = gen.generate(self.PROFILE, self._opts())
         plugin = files["TestsitePlugin.kt"]

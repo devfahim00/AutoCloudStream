@@ -176,7 +176,7 @@ def build_page_url_fn(style: str, param: str | None) -> str:
             f"    // ---- pagination: ?{p}=N query style ----\n"
             "    private fun pageUrl(base: String, page: Int): String =\n"
             "        if (page <= 1) base\n"
-            f"        else base + (if (base.contains('?')) \"&\" else \"?\") + \"{p}=\"$page"
+            f"        else base + (if (base.contains('?')) \"&\" else \"?\") + \"{p}=$page\""
         )
     return (
         "    // ---- pagination: none detected (single page) ----\n"
