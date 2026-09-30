@@ -149,7 +149,8 @@ jobs:
           # normalize raw download URLs to the main branch (safety net)
           if [ -f builds/plugins.json ]; then
             sed -i -e 's|/refs/heads/master/|/refs/heads/main/|g' \
-                   -e 's|/refs/heads/builds/|/refs/heads/main/|g' builds/plugins.json
+                   -e 's|/refs/heads/builds/|/refs/heads/main/|g' \
+                   -E 's|(raw\.githubusercontent\.com/[^/]+/[^/]+)/builds/|\1/main/builds/|g' builds/plugins.json
           fi
           ls -la builds/
 
