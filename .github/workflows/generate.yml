@@ -112,7 +112,7 @@ jobs:
 
       - name: Set up Android SDK
         if: ${{ inputs.build_cs3 }}
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v3.2.2
 
       - name: Set up Gradle (cached)
         if: ${{ inputs.build_cs3 }}
