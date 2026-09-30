@@ -199,13 +199,27 @@ output/<Site>/
 `<Site>Provider.kt` contains:
 
 - `mainPage` / `getMainPage` — detected sections + pagination style
-- `search` — detected endpoint (or a TODO stub)
+- `search` — detected endpoint first; if it returns nothing (or none was
+  detected) it falls back to WordPress `/?s=` and the `/wp-json/wp/v2/search`
+  REST endpoint, so search works on most sites out of the box
 - `load` — og:meta first, detected selectors as fallback; collects playable
-  links by stream host and packs them `label@@@url|||...` (HdHub format);
-  auto-detects series pages by keyword
-- `loadLinks` — generic chain: direct m3u8/mp4 → `extractStatic` (regex +
-  p.a.c.k.e.r unpacker) → `extractViaWebView` (WebViewResolver intercept) →
-  `loadExtractor` (built-in CloudStream extractors for dood/streamtape/...)
+  links by stream host **plus every embedded player** (`<iframe>`, lazy
+  `data-src`, `data-embed`/`data-video` attributes) and packs them
+  `label@@@url|||...`; adds year (JSON-LD / title), genre tags and related
+  titles; series detected by `Season`/`Episodes`/`Web Series`/`S01E05`
+- `loadLinks` — generic resolver, per link, stopping at the first success:
+  1. direct `.m3u8`/`.mp4` (HLS master playlists expanded into 1080p/720p/…
+     variants via `M3u8Helper`)
+  2. `loadExtractor` — CloudStream's built-in extractors (dood, streamtape, …)
+  3. page scan — media URLs in source, p.a.c.k.e.r / `atob()` / `unescape()`
+     blobs, player configs (`file: "..."`), `<video>`/`<source>`, JSON-LD
+     `contentUrl`/`embedUrl`, subtitles (`.vtt`/`.srt`)
+  4. nested players — follows iframes up to 2 levels deep with the correct
+     referer
+  5. `extractViaWebView` — WebViewResolver intercept, leaf pages only
+  and reports success only when a link was actually emitted
+- every page fetch is Cloudflare-aware: a 403/503 or "Just a moment" page is
+  retried through CloudStream's `CloudflareKiller`
 - a **MANUAL REVIEW** banner with every profiler finding for the player page
 - the Telegram promo block (same as HdHub/DesiTales) — disable with
   `--telegram-url ""`
@@ -231,8 +245,10 @@ python -m unittest discover -s tests -v   # offline, no network needed
 - JS-rendered sites (React/Vue SPAs that fetch cards via XHR) can't be
   profiled from static HTML — the profiler will report "no card pattern".
   API-driven sites like Ctghall need a hand-written provider.
-- Cloudflare-protected sites may need `pip install cloudscraper` (used
-  automatically when a 403/503 challenge is detected).
+- Cloudflare-protected sites: the profiler uses `pip install cloudscraper`
+  when a 403/503 challenge is detected; the generated provider retries
+  blocked requests through `CloudflareKiller` at runtime (interactive
+  captchas still cannot be solved automatically).
 - Video extraction stays best-effort: token-rotating m3u8s, DRM and
   heavily obfuscated players are per-site work by design.
 
