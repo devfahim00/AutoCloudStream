@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# profiler / generator output
+profile.json
+output/
+profiles/
+
+.DS_Store
+.idea/
+.vscode/
