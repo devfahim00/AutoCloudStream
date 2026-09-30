@@ -59,9 +59,9 @@ jobs:
           cp plugins-repo/*/build/*.cs3 builds/ 2>/dev/null || true
           cp plugins-repo/build/plugins.json builds/ 2>/dev/null || true
           if [ -f builds/plugins.json ]; then
-            sed -i -e 's|/refs/heads/master/|/refs/heads/main/|g' \
-                   -e 's|/refs/heads/builds/|/refs/heads/main/|g' \
-                   -E 's|(raw\.githubusercontent\.com/[^/]+/[^/]+)/builds/|\1/main/builds/|g' builds/plugins.json
+            sed -i -E -e 's|/refs/heads/master/|/refs/heads/main/|g' \
+                      -e 's|/refs/heads/builds/|/refs/heads/main/|g' \
+                      -e 's|(raw\.githubusercontent\.com/[^/]+/[^/]+)/builds/|\1/main/builds/|g' builds/plugins.json
           fi
           ls -la builds/
 
