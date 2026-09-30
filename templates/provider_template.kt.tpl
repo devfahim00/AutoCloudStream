@@ -493,17 +493,17 @@ class {{provider_class}} : MainAPI() {
         private const val LINK_SELECTOR = "{{link_selector}}"
 {{/link_selector}}
 {{#title_selector}}
-        private val TITLE_SELECTOR: String? = "{{title_selector}}"
+        private const val TITLE_SELECTOR = "{{title_selector}}"
 {{/title_selector}}
 {{#poster_detected}}
         private const val POSTER_SELECTOR = "{{poster_selector}}"
         private val POSTER_ATTRS = listOf({{poster_attr_list}}).distinct()
 {{/poster_detected}}
 {{#detail_title_selector}}
-        private val DETAIL_TITLE_SELECTOR: String? = "{{detail_title_selector}}"
+        private const val DETAIL_TITLE_SELECTOR = "{{detail_title_selector}}"
 {{/detail_title_selector}}
 {{#detail_desc_selector}}
-        private val DETAIL_DESC_SELECTOR: String? = "{{detail_desc_selector}}"
+        private const val DETAIL_DESC_SELECTOR = "{{detail_desc_selector}}"
 {{/detail_desc_selector}}
         private const val DETAIL_LINKS_SELECTOR = "{{detail_links_selector}}"
 {{#detail_poster_sel}}

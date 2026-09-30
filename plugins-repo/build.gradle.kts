@@ -81,6 +81,9 @@ subprojects {
         implementation(kotlin("stdlib"))
         implementation("com.github.Blatzar:NiceHttp:0.4.13")
         implementation("org.jsoup:jsoup:1.18.3")
+        // jsoup 1.18+ ships jspecify @Nullable annotations; without this
+        // artifact Kotlin fails with "annotation class ... inaccessible"
+        implementation("org.jspecify:jspecify:1.0.0")
         implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.16.0")
         implementation("com.fasterxml.jackson.core:jackson-databind:2.16.0")
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.1")

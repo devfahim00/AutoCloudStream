@@ -205,7 +205,7 @@ class TestGenerator(unittest.TestCase):
         self.assertIn('override var mainUrl = "https://testsite.local"', kt)
         self.assertIn('CARD_SELECTOR = "li.thumb"', kt)
         self.assertIn('POSTER_ATTRS = listOf("data-src", "src")', kt)
-        self.assertIn('DETAIL_TITLE_SELECTOR: String? = "h1.page-title"', kt)
+        self.assertIn('DETAIL_TITLE_SELECTOR = "h1.page-title"', kt)
         self.assertIn('DETAIL_LINKS_SELECTOR = ".page-body a[href]"', kt)
         self.assertIn('"watch.examplehost.com"', kt)
         self.assertIn('DETAIL_HREF_HINTS = listOf("/movies/")', kt)
