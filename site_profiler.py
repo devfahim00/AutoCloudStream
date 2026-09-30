@@ -116,6 +116,17 @@ M3U8_RE = re.compile(
 PACKER_RE = re.compile(r"eval\(function\(p,a,c,k,e,[dr]\)", re.I)
 IFRAME_SRC_RE = re.compile(r'<iframe[^>]+src=["\']([^"\']+)["\']', re.I)
 
+# player config objects: file: "...m3u8", src = "...mp4", hls_url: "..." (may be relative)
+KEYED_MEDIA_RE = re.compile(
+    r"""["']?(?:file|src|source|url|hls|hls_?url|video_?url|content_?url|stream(?:_?url)?)["']?"""
+    r"""\s*[:=]\s*["']([^"'\s]+?\.(?:m3u8|mp4)(?:\?[^"'\s]*)?)["']""", re.I
+)
+# media hidden behind atob("...") / unescape("%3C...") blobs
+HIDDEN_BLOB_RE = re.compile(
+    r"""atob\(\s*["'][A-Za-z0-9+/=]{16,}["']\s*\)|unescape\(\s*["'][^"']{16,}["']\s*\)""", re.I
+)
+JSONLD_MEDIA_RE = re.compile(r"""["'](?:contentUrl|embedUrl)["']\s*:\s*["']([^"']+)["']""", re.I)
+
 
 class ProfilerError(Exception):
     """Raised when a site cannot be profiled at all."""
@@ -803,6 +814,10 @@ def profile_video_page(url: str, referer: str | None, fetcher, timeout: int = 20
         "found_iframes": [],
         "packed_script": False,
         "player_hints": [],
+        "found_config": [],
+        "video_tag": False,
+        "jsonld_media": [],
+        "hidden_blobs": False,
         "notes": "",
     }
     if not url:
@@ -833,12 +848,32 @@ def profile_video_page(url: str, referer: str | None, fetcher, timeout: int = 20
     out["packed_script"] = bool(PACKER_RE.search(html))
     out["player_hints"] = [h for h in PLAYER_HINTS if h in html.lower()]
 
+    normalized = html.replace("\\/", "/")
+    out["found_config"] = list(dict.fromkeys(
+        m for m in KEYED_MEDIA_RE.findall(normalized)
+    ))[:5]
+    out["video_tag"] = bool(soup.select("video[src], video source[src]"))
+    out["jsonld_media"] = list(dict.fromkeys(JSONLD_MEDIA_RE.findall(normalized)))[:5]
+    out["hidden_blobs"] = bool(HIDDEN_BLOB_RE.search(html))
+
     if out["found_m3u8"] or out["found_mp4"]:
         out["mode"] = "direct_m3u8" if out["found_m3u8"] else "direct_mp4"
         out["notes"] = "Direct stream URL found in page source — loadLinks should work out of the box."
+    elif out["found_config"]:
+        out["mode"] = "player_config"
+        out["notes"] = "Stream URL found in a player config (file:/src:) — the generic page scan resolves it."
+    elif out["video_tag"]:
+        out["mode"] = "video_tag"
+        out["notes"] = "Plain <video>/<source> tag — the generic page scan resolves it."
+    elif out["jsonld_media"]:
+        out["mode"] = "jsonld"
+        out["notes"] = "JSON-LD contentUrl/embedUrl present — the generic page scan follows it."
     elif out["packed_script"]:
         out["mode"] = "packed"
         out["notes"] = "Packed (p.a.c.k.e.r) player detected — generic unpacker in the template usually handles this."
+    elif out["hidden_blobs"] and not out["found_iframes"]:
+        out["mode"] = "obfuscated"
+        out["notes"] = "atob()/unescape() blob found — the template decodes these and rescans the result."
     elif out["found_iframes"]:
         out["mode"] = "iframe"
         out["notes"] = "Third-party iframe embeds detected — CloudStream loadExtractor() may support these hosts."

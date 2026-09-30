@@ -340,3 +340,95 @@ class TestEndToEnd(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+# ------------------------------------------------ generic-resolver additions
+
+class TestVideoModes(unittest.TestCase):
+    """profile_video_page() must recognise more than m3u8-in-HTML."""
+
+    def _scan(self, html):
+        def fetcher(url, referer=None, timeout=20):
+            return html, {"status": 200, "final_url": url}
+        return prof.profile_video_page("https://player.example/v/1", None, fetcher)
+
+    def test_player_config_relative(self):
+        v = self._scan('<script>jwplayer("p").setup({file: "/hls/abc/index.m3u8"});</script>')
+        # relative config is not an absolute m3u8, so it must be caught by the config detector
+        self.assertEqual(v["mode"], "player_config")
+        self.assertIn("/hls/abc/index.m3u8", v["found_config"])
+
+    def test_video_tag(self):
+        v = self._scan('<video controls><source src="/media/movie"></video>')
+        self.assertEqual(v["mode"], "video_tag")
+
+    def test_jsonld_embed(self):
+        v = self._scan('<script type="application/ld+json">{"@type":"VideoObject",'
+                       '"embedUrl":"https://cdn.example/embed/9"}</script>')
+        self.assertEqual(v["mode"], "jsonld")
+        self.assertIn("https://cdn.example/embed/9", v["jsonld_media"])
+
+    def test_hidden_blob(self):
+        v = self._scan('<script>document.write(atob("PGlmcmFtZSBzcmM9Imh0dHA6Ly94Ij48L2lmcmFtZT4="))</script>')
+        self.assertEqual(v["mode"], "obfuscated")
+        self.assertTrue(v["hidden_blobs"])
+
+    def test_direct_still_wins(self):
+        v = self._scan('<script>var s="https://a.b/x/master.m3u8";</script><video src="/q"></video>')
+        self.assertEqual(v["mode"], "direct_m3u8")
+
+
+class TestTemplateResolver(unittest.TestCase):
+    """The rendered Kotlin must carry the generic resolver pipeline."""
+
+    @classmethod
+    def setUpClass(cls):
+        with open(os.path.join(ROOT, "profiles", "Kamababa.json"), encoding="utf-8") as f:
+            cls.profile = json.load(f)
+
+    def _kt(self, **kw):
+        import argparse
+        opts = argparse.Namespace(
+            profile_path="profiles/Kamababa.json", package=None, class_name=None,
+            name=None, author="t", lang=None, description="d", status=3, icon=None,
+            series=False, telegram_url=kw.get("telegram_url", "https://t.me/x"),
+            telegram_poster="p", single=False, out="x",
+        )
+        return gen.generate(self.profile, opts)["KamababaProvider.kt"]
+
+    def test_pipeline_functions_present(self):
+        kt = self._kt()
+        for needle in ("suspend fun resolve(", "fun collectEmbeds(", "fun parseJsonLd(",
+                       "suspend fun fetchHtml(", "CloudflareKiller", "M3u8Helper.generateM3u8",
+                       "suspend fun searchFallback(", "newSubtitleFile(", "fun decodeHiddenBlobs(",
+                       "suspend fun extractViaWebView(", "fun unpackAllPackedScripts("):
+            self.assertIn(needle, kt, needle)
+
+    def test_no_raw_app_get_document(self):
+        # every page fetch must go through the Cloudflare-aware helper
+        kt = self._kt()
+        self.assertNotIn(".document", kt.replace("Jsoup.parse", ""))
+
+    def test_no_placeholder_or_none_leaks(self):
+        kt = self._kt()
+        self.assertNotRegex(kt, r"\{\{[^}]*\}\}")
+        self.assertNotIn("None", kt)
+
+    def test_braces_balanced_without_telegram(self):
+        kt = self._kt(telegram_url=None)
+        self.assertEqual(kt.count("{"), kt.count("}"))
+
+    def test_loadlinks_tracks_real_emission(self):
+        # found must reflect links actually emitted, not "we tried something"
+        kt = self._kt()
+        self.assertIn("return emitted > 0", kt)
+
+    def test_series_regex(self):
+        import re as _re
+        kt = self._kt()
+        self.assertIn("web[ -]?series", kt)
+        rx = _re.compile(r"\b(?:season|series|episodes?|web[ -]?series)\b|\bS\d{1,2}(?:E\d{1,3})?\b", _re.I)
+        for t in ("Show S02", "Show S01E05", "Some Web Series", "Name Season 3"):
+            self.assertTrue(rx.search(t), t)
+        for t in ("Iron Man 2008", "Se7en"):
+            self.assertFalse(rx.search(t), t)

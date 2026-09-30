@@ -213,6 +213,14 @@ def build_manual_review(profile: dict) -> str:
             lines.append(pad + f"found mp4   : {u[:95]}")
         for u in (v.get("found_iframes") or [])[:3]:
             lines.append(pad + f"found iframe: {u[:95]}")
+        for u in (v.get("found_config") or [])[:3]:
+            lines.append(pad + f"player cfg  : {u[:95]}")
+        for u in (v.get("jsonld_media") or [])[:3]:
+            lines.append(pad + f"json-ld     : {u[:95]}")
+        if v.get("video_tag"):
+            lines.append(pad + "<video>/<source> tag present")
+        if v.get("hidden_blobs"):
+            lines.append(pad + "atob()/unescape() blob present — decoded by the generic resolver")
         if v.get("player_hints"):
             lines.append(pad + "player hints: " + ", ".join(v["player_hints"]))
         if v.get("packed_script"):
