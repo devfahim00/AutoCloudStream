@@ -497,7 +497,7 @@ class {{provider_class}} : MainAPI() {
 {{/title_selector}}
 {{#poster_detected}}
         private const val POSTER_SELECTOR = "{{poster_selector}}"
-        private val POSTER_ATTRS = listOf({{poster_attr_list}}).distinct()
+        private val POSTER_ATTRS = listOf<String>({{poster_attr_list}}).distinct()
 {{/poster_detected}}
 {{#detail_title_selector}}
         private const val DETAIL_TITLE_SELECTOR = "{{detail_title_selector}}"
@@ -510,11 +510,11 @@ class {{provider_class}} : MainAPI() {
         private const val DETAIL_POSTER_SELECTOR = "{{detail_poster_selector}}"
 {{/detail_poster_sel}}
 {{#detail_hints}}
-        private val DETAIL_HREF_HINTS = listOf({{detail_hints_list}})
+        private val DETAIL_HREF_HINTS = listOf<String>({{detail_hints_list}})
 {{/detail_hints}}
 
         // external hosts seen linking to playable pages on this site
-        private val STREAM_HOSTS = listOf({{stream_hosts_list}})
+        private val STREAM_HOSTS = listOf<String>({{stream_hosts_list}})
 
         // used only when STREAM_HOSTS is empty: keep external links that
         // look stream-ish by label or URL

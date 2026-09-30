@@ -414,6 +414,17 @@ def render_provider(ctx: dict) -> str:
         raise GeneratorError(
             "unresolved template placeholders: " + ", ".join(sorted(set(leftovers)))
         )
+    # sanity: bare empty collection calls - Kotlin cannot infer T from an
+    # empty listOf()/setOf()/mapOf() without a type argument, and the error
+    # only shows up later as "Cannot infer type for type parameter 'T'"
+    # during the Gradle build (e.g. STREAM_HOSTS when the profiler found no
+    # external stream hosts on the site).
+    bare_coll = re.findall(r"\b(?:listOf|mutableListOf|setOf|mapOf)\(\s*\)", out)
+    if bare_coll:
+        raise GeneratorError(
+            "bare empty collection call(s) without a type argument "
+            "(add <String> or use emptyList()): " + ", ".join(sorted(set(bare_coll)))
+        )
     # sanity: braces balanced (string templates could skew this by a hair,
     # so only warn)
     if out.count("{") != out.count("}"):

@@ -182,6 +182,23 @@ class TestGenerator(unittest.TestCase):
         out = gen.render(tpl, {"a": 1, "on": True, "off": False})
         self.assertEqual(out, "A=1 yes")
 
+    def test_no_stream_hosts_renders_typed_empty_list(self):
+        """Zero detected stream hosts must render listOf<String>(), never a
+        bare listOf() - bare empty collections fail Kotlin compilation with
+        "Cannot infer type for type parameter 'T'" (Kamababa regression:
+        sites whose detail pages link to no external hosts)."""
+        import copy
+        profile = copy.deepcopy(self.PROFILE)
+        profile["detail"]["stream_hosts"] = []
+        files = gen.generate(profile, self._opts())
+        kt = files["TestsiteProvider.kt"]
+        self.assertIn("STREAM_HOSTS = listOf<String>()", kt)
+        # no bare empty collection call anywhere in the provider
+        import re
+        self.assertIsNone(
+            re.search(r"\b(?:listOf|mutableListOf|setOf|mapOf)\(\s*\)", kt)
+        )
+
     def test_module_files_created(self):
         files = gen.generate(self.PROFILE, self._opts())
         names = sorted(files)
@@ -204,11 +221,11 @@ class TestGenerator(unittest.TestCase):
         self.assertIn("class TestsiteProvider : MainAPI()", kt)
         self.assertIn('override var mainUrl = "https://testsite.local"', kt)
         self.assertIn('CARD_SELECTOR = "li.thumb"', kt)
-        self.assertIn('POSTER_ATTRS = listOf("data-src", "src")', kt)
+        self.assertIn('POSTER_ATTRS = listOf<String>("data-src", "src")', kt)
         self.assertIn('DETAIL_TITLE_SELECTOR = "h1.page-title"', kt)
         self.assertIn('DETAIL_LINKS_SELECTOR = ".page-body a[href]"', kt)
         self.assertIn('"watch.examplehost.com"', kt)
-        self.assertIn('DETAIL_HREF_HINTS = listOf("/movies/")', kt)
+        self.assertIn('DETAIL_HREF_HINTS = listOf<String>("/movies/")', kt)
 
         # main page sections + pagination style
         self.assertIn('mainPageOf(', kt)
